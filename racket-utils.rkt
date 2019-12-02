@@ -12,8 +12,8 @@
 
 (define-syntax letin
   (syntax-rules ()
-    [(pairs body) body]
-    [(pairs (a b) body ...)
+    [(letin body) body]
+    [(letin (a b) body ...)
      (let [[a b]] (letin body ...))]))
 
 (define-simple-macro [defloop args . body]
@@ -150,15 +150,12 @@
     (let loop ([min (car xs)]
                [min-var init-min-var]
                [xs (cdr xs)])
-      (cond
-        [(null? xs) min]
-        [else
-         (let ([new-min (f (car xs))])
-           (cond
-             [(cmp new-min min-var)
-              (loop (car xs) new-min (cdr xs))]
-             [else
-              (loop min min-var (cdr xs))]))]))))
+      (if (null? xs)
+          min
+          (let ([new-min (f (car xs))])
+            (if (cmp new-min min-var)
+                (loop (car xs) new-min (cdr xs))
+                (loop min min-var (cdr xs))))))))
 
 (define [g-matrix? m] ((listof list?) m))
 
@@ -269,6 +266,72 @@
   (letin
    [m (argmin identity (map length lists))]
    (map (lambda [x] (take x m)) lists)))
+
+(define [take-atmost n l]
+  (if (or (= 0 n) (null? l))
+      '()
+      (cons (car l) (take-atmost (sub1 n) (cdr l)))))
+
+(define [zip . lists]
+  (letrec [[minlen (maximize < length lists)]
+           [taken (map (take _ minlen) lists)]]
+    (apply map (list* list taken))))
+
+(define [nullable? x]
+  (or (equal? #f x) (empty? x) (void? x)))
+
+(define [dirnames-of path]
+  (define [loop path]
+    (let-values [[[base filename root?] (split-path path)]]
+      (if base
+          (list* base (loop (path->string base)))
+          '())))
+  (reverse (loop path)))
+
+(define [make-directories path]
+  (define [create-maybe dir]
+    (unless (directory-exists? dir)
+      (make-directory dir)))
+  (let [[directories (dirnames-of path)]]
+    (map create-maybe directories)))
+
+;; Monad basically
+(define [doeffect >>= x f-list]
+   (if (empty? f-list)
+      x
+      (let [[head (first f-list)]]
+        (>>= x (lambda [current] (doeffect >>= (head current) (rest f-list)))))))
+
+;; Short circuits with any predicate
+(define [dodefault default? x f-list]
+   (define [>>= current f]
+           (if (default? current)
+               current
+               (f current)))
+   (doeffect >>= x f-list))
+
+;; Like a maybe monad
+(define [domaybe default x f-list]
+   (dodefault (equal? default _) x f-list))
+
+;; like do syntax
+(define-syntax letin-with-start
+  (syntax-rules ()
+    [(letin-with-start f x body) body]
+    [(letin-with-start f x (a b) body ...)
+     (let [[a (f x
+                 (lambda [a]
+                   (letin-with-start f
+                                     (b a)
+                                     body
+                                     ...)))]])]))
+
+;; like do syntax
+(define-syntax letin-with
+  (syntax-rules ()
+    [(letin-with f body) body]
+    [(letin-with f (a b) body ...)
+     (let [[a b]] (letin-with f body ...))]))
 
 (define [ceiling-multiple-of mult n]
   (* mult (ceiling (/ n mult))))
