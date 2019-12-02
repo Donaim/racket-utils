@@ -295,43 +295,34 @@
   (let [[directories (dirnames-of path)]]
     (map create-maybe directories)))
 
-;; Monad basically
-(define [doeffect >>= x f-list]
-   (if (empty? f-list)
-      x
-      (let [[head (first f-list)]]
-        (>>= x (lambda [current] (doeffect >>= (head current) (rest f-list)))))))
+;; like do syntax in haskell
+(define-syntax letin-with-full
+  (syntax-rules ()
+    [(letin-with-full f body) body]
+    [(letin-with-full f (a b) body ...)
+     (f (quote a)
+        b
+        (lambda [a]
+          (letin-with-full f
+                           body
+                           ...)))]))
+
+(define-syntax-rule [letin-with f . argv]
+  (letin-with-full (lambda [name x cont] (f x cont)) . argv))
+
+(define-syntax-rule [dom . argv] (letin-with . argv))
 
 ;; Short circuits with any predicate
-(define [dodefault default? x f-list]
-   (define [>>= current f]
-           (if (default? current)
-               current
-               (f current)))
-   (doeffect >>= x f-list))
+(define [dom-default default?]
+  (lm x cont
+      (if (default? x)
+          x
+          (cont x))))
 
-;; Like a maybe monad
-(define [domaybe default x f-list]
-   (dodefault (equal? default _) x f-list))
-
-;; like do syntax
-(define-syntax letin-with-start
-  (syntax-rules ()
-    [(letin-with-start f x body) body]
-    [(letin-with-start f x (a b) body ...)
-     (let [[a (f x
-                 (lambda [a]
-                   (letin-with-start f
-                                     (b a)
-                                     body
-                                     ...)))]])]))
-
-;; like do syntax
-(define-syntax letin-with
-  (syntax-rules ()
-    [(letin-with f body) body]
-    [(letin-with f (a b) body ...)
-     (let [[a b]] (letin-with f body ...))]))
+;; Logs computations
+(define [dom-print name x cont]
+  (printf "[dom] ~a = ~a\n" name x)
+  (cont x))
 
 (define [ceiling-multiple-of mult n]
   (* mult (ceiling (/ n mult))))
