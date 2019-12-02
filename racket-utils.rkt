@@ -301,6 +301,7 @@
     [(letin-with-full f body) body]
     [(letin-with-full f (a b) body ...)
      (f (quote a)
+        (quote b)
         b
         (lambda [a]
           (letin-with-full f
@@ -308,7 +309,7 @@
                            ...)))]))
 
 (define-syntax-rule [letin-with f . argv]
-  (letin-with-full (lambda [name x cont] (f x cont)) . argv))
+  (letin-with-full (lambda [name result x cont] (f x cont)) . argv))
 
 (define-syntax-rule [dom . argv] (letin-with . argv))
 
@@ -320,8 +321,8 @@
           (cont x))))
 
 ;; Logs computations
-(define [dom-print name x cont]
-  (printf "[dom] ~a = ~a\n" name x)
+(define [dom-print name result x cont]
+  (printf "(~a = ~a = ~a)\n" name x result)
   (cont x))
 
 (define [ceiling-multiple-of mult n]
