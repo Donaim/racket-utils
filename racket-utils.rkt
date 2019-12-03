@@ -308,8 +308,20 @@
                            body
                            ...)))]))
 
+(define letin-global-monad-parameter (make-parameter #f))
+(define-syntax-rule [letin-parameterize f . body]
+  (parameterize [[letin-global-monad-parameter f]]
+    (begin . body)))
+
+;; with parameterization
+(define-syntax-rule [letin-with-full-parameterized f . argv]
+  (let [[p (letin-global-monad-parameter)]]
+    (if p
+        (letin-with-full (p f (quote f)) . argv)
+        (letin-with-full f . argv))))
+
 (define-syntax-rule [letin-with f . argv]
-  (letin-with-full (lambda [name result x cont] (f x cont)) . argv))
+  (letin-with-full-parameterized (lambda [name result x cont] (f x cont)) . argv))
 
 (define-syntax-rule [dom . argv] (letin-with . argv))
 
