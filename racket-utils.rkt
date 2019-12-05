@@ -445,13 +445,6 @@
         (skipped-list-base slist)
         (skipped-list-indexes slist)))
 
-(define [numlist-cons base digit n]
-  (+ digit (* n base)))
-(define [numlist-car base n]
-  (remainder n base))
-(define [numlist-cdr base n]
-  (quotient n base))
-
 (gfunc/define g/empty?)
 
 (gfunc/instance g/empty?
