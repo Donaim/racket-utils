@@ -31,6 +31,19 @@
 (define-syntax-rule [apprec id args argv . body]
   ((defrec [id . args] . body) . argv))
 
+(define-syntax [reversed-args stx]
+  (syntax-parse stx
+    [(_ x ...) (define xs (syntax-e #'(x ...)))
+               (define rev-xs (reverse xs))
+               (datum->syntax stx (cons list rev-xs))]))
+
+(define-syntax [f-reversed-args stx]
+  (syntax-parse stx
+    [(_ f x ...) (define xs (syntax-e #'(x ...)))
+                 (define ff (syntax-e #'f))
+                 (define rev-xs (reverse xs))
+                 (datum->syntax stx (cons ff rev-xs))]))
+
 (define-syntax reversed-lambda
   (syntax-rules ()
     [(reversed-lambda body args) (lambda [] body)]
