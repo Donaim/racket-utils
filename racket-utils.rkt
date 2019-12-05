@@ -31,6 +31,7 @@
 
 (define-syntax reversed-lambda
   (syntax-rules ()
+    [(reversed-lambda body args) (lambda [] body)]
     [(reversed-lambda body args next) (lambda (next . args) body)]
     [(reversed-lambda body args x next ...) (reversed-lambda body (x . args) next ...)]))
 
