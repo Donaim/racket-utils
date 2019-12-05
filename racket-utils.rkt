@@ -13,6 +13,8 @@
 (define-syntax letin
   (syntax-rules ()
     [(letin body) body]
+    [(letin ((a . as) b) body ...)
+     (let-values [[[a . as] b]] (letin body ...))]
     [(letin (a b) body ...)
      (let [[a b]] (letin body ...))]))
 
