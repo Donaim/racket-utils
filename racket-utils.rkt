@@ -173,6 +173,11 @@
       '()
       (cons x (replicate x (sub1 n)))))
 
+(define [repeat-f n f x]
+  (if (= n 0)
+      x
+      (repeat-f (sub1 n) f (f x))))
+
 (define [list-base-n->integer base bts]
   (apploop [p left] [1 bts]
            (if (null? left) 0
