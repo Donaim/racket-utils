@@ -143,9 +143,12 @@
       '()
       (cons x (replicate x (sub1 n)))))
 
-(define [bytes->integer bts]
-  (((apply + _) .. (map * bts _) .. (map (expt 256 _) _))
-   (range 0 (length bts))))
+(define [list-base-n->integer base bts]
+  (apploop [p left] [1 bts]
+           (if (null? left) 0
+               (+ (* p (car left)) (loop (* p base) (cdr left))))))
+
+(define [bytes->integer bts] (list-base-n->integer 256))
 
 (define/contract [maximize cmp f xs]
   (-> procedure? procedure? (and/c (not/c null?) (listof real?)) any/c)
