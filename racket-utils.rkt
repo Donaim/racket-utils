@@ -64,6 +64,12 @@
                           (cons a b)
                           (pairs x ...))]))
 
+(define-syntax monoid*
+  (syntax-rules ()
+    [(monoid* op a) a]
+    [(monoid* op a b ...)
+     (monoid* op (op a b) ...)]))
+
 (define [check-list-contract check-list args]
   (or (not check-list)
       (and (= (length check-list) (length args))
