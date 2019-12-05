@@ -64,11 +64,22 @@
                           (cons a b)
                           (pairs x ...))]))
 
+(define [monoid-f* op x . args]
+  (if (null? args)
+      x
+      (apply monoid-f* (list* op (op x (car args)) (cdr args)))))
+
+(define-syntax monoid-r*
+  (syntax-rules ()
+    [(monoid-r* op a) a]
+    [(monoid-r* op a b ...)
+     (op a (monoid-r* op b ...))]))
+
 (define-syntax monoid*
   (syntax-rules ()
     [(monoid* op a) a]
-    [(monoid* op a b ...)
-     (monoid* op (op a b) ...)]))
+    [(monoid* op a b c ...)
+     (monoid* op (op a b) c ...)]))
 
 (define [check-list-contract check-list args]
   (or (not check-list)
