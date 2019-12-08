@@ -77,10 +77,19 @@
                           (cons a b)
                           (pairs x ...))]))
 
-(define [monoid-f* op x . args]
-  (if (null? args)
-      x
-      (apply monoid-f* (list* op (op x (car args)) (cdr args)))))
+(define-syntax monoids*
+  (syntax-rules ()
+    [(monoids* x) x]
+    [(monoids* op x) (op x)]
+    [(monoids* a op b next-op ...)
+     (monoids* (op a b) next-op ...)]))
+
+(define-syntax monoids-r*
+  (syntax-rules ()
+    [(monoids-r* x) x]
+    [(monoids-r* op x) (op x)]
+    [(monoids-r* a op b next-op ...)
+     (op a (monoids-r* b next-op ...))]))
 
 (define-syntax monoid-r*
   (syntax-rules ()
