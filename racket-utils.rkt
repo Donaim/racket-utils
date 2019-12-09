@@ -50,25 +50,25 @@
     [(reversed-lambda body args next) (lambda (next . args) body)]
     [(reversed-lambda body args x next ...) (reversed-lambda body (x . args) next ...)]))
 
-(define-syntax lm-start
+(define-syntax fn-start
   (syntax-rules ()
-    [(lm-start args body) (reversed-lambda body () . args)]
-    [(lm-start args x body ...) (lm-start (x . args) body ...)]))
+    [(fn-start args body) (reversed-lambda body () . args)]
+    [(fn-start args x body ...) (fn-start (x . args) body ...)]))
 
-(define-syntax-rule [lm . argv] (lm-start () . argv))
+(define-syntax-rule [fn . argv] (fn-start () . argv))
 
-(define-syntax lm-list-g
+(define-syntax fn-list-g
   (syntax-rules ()
-    [(lm-list-g lst body) body]
-    [(lm-list-g lst x body ...)
+    [(fn-list-g lst body) body]
+    [(fn-list-g lst x body ...)
      (let [[x (car lst)]]
-       (lm-list-g
+       (fn-list-g
         (cdr lst)
         body
         ...))]))
 
-(define-syntax-rule [lm-list . args]
-  (lambda [lst] (lm-list-g lst . args)))
+(define-syntax-rule [fn-list . args]
+  (lambda [lst] (fn-list-g lst . args)))
 
 (define-syntax pairs
   (syntax-rules ()
@@ -271,7 +271,7 @@
    m))
 
 (define [matrix-focus-frames m w h #:out-of-range-bad? (check? #f)]
-  (map (lm-list y x
+  (map (fn-list y x
                 (matrix-focus m
                               x y
                               w h
@@ -287,7 +287,7 @@
        [lm2 (length m2)]
        [do (when (> lm2 lm1)
              (error "Cannot append matrixes because height of right matrix is bigger than height of left one"))]
-       (map (lm y
+       (map (fn y
                 (if (< y lm2)
                     (append (list-ref m1 y) (list-ref m2 y))
                     (list-ref m1 y)))
@@ -377,7 +377,7 @@
 
 ;; Short circuits with any predicate
 (define [dom-default default?]
-  (lm x cont
+  (fn x cont
       (if (default? x)
           x
           (cont x))))
@@ -462,37 +462,37 @@
 
 (gfunc/instance g/empty?
  [skipped-list?]
- (lm slist (andmap identity (skipped-list-indexes slist))))
+ (fn slist (andmap identity (skipped-list-indexes slist))))
 
 (gfunc/instance g/empty?
  [cycle-list?]
- (lm clist (null? (cycle-list-buffor clist))))
+ (fn clist (null? (cycle-list-buffor clist))))
 
 (gfunc/define g/map)
 
 (gfunc/instance g/map
  [procedure? list?]
- (lm f lst (map f lst)))
+ (fn f lst (map f lst)))
 
 (gfunc/instance g/map
  [procedure? cycle-list?]
- (lm f clist (map f clist)))
+ (fn f clist (map f clist)))
 
 (gfunc/instance g/map
  [procedure? skipped-list?]
- (lm f slist (skipped-list-map f slist)))
+ (fn f slist (skipped-list-map f slist)))
 
 (gfunc/define g/ref)
 
 (gfunc/instance g/ref
  [integer? list?]
- (lm i lst (list-ref lst i)))
+ (fn i lst (list-ref lst i)))
 
 (gfunc/instance g/ref
  [integer? cycle-list?]
- (lm i clist (list-ref<mod> (cycle-list-buffor clist) i)))
+ (fn i clist (list-ref<mod> (cycle-list-buffor clist) i)))
 
 (gfunc/instance g/ref
  [integer? skipped-list?]
- (lm i slist (skipped-list-ref i slist)))
+ (fn i slist (skipped-list-ref i slist)))
 

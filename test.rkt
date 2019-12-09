@@ -21,8 +21,8 @@
 
 (printf "dom parameterized = ~a\n"
         (letin-parameterize
-         (lm f fname
-             (lm xqt resultqt x cont
+         (fn f fname
+             (fn xqt resultqt x cont
                  (add1 (f xqt resultqt x cont))))
          (calc-default)))
 
